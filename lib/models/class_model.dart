@@ -3,6 +3,8 @@ class ClassModel {
   final String unitCode;
   final String unitName;
   final String courseCode;
+  /// Admission year this class targets, e.g. "2021". Empty string means all years.
+  final String yearGroup;
   final String lecturerId;
   final String venue;
   final double latitude;
@@ -17,6 +19,7 @@ class ClassModel {
     required this.unitCode,
     required this.unitName,
     required this.courseCode,
+    required this.yearGroup,
     required this.lecturerId,
     required this.venue,
     required this.latitude,
@@ -33,6 +36,7 @@ class ClassModel {
       unitCode: map['unitCode'] ?? '',
       unitName: map['unitName'] ?? '',
       courseCode: map['courseCode'] ?? '',
+      yearGroup: map['yearGroup'] ?? '',
       lecturerId: map['lecturerId'] ?? '',
       venue: map['venue'] ?? '',
       latitude: (map['latitude'] ?? 0).toDouble(),

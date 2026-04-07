@@ -55,7 +55,9 @@ class AttendanceService {
 
   /// Returns all classes that are currently marked isActive = true
   /// and belong to the student's courseCode.
-  Future<List<ClassModel>> getActiveClasses(String courseCode) async {
+  /// Returns active classes for [courseCode] that target [admissionYear]
+  /// or have no year restriction (yearGroup == '').
+  Future<List<ClassModel>> getActiveClasses(String courseCode, String admissionYear) async {
     final snapshot = await _db
         .child('classes')
         .orderByChild('courseCode')
@@ -67,7 +69,9 @@ class AttendanceService {
     final map = snapshot.value as Map;
     return map.entries
         .map((e) => ClassModel.fromMap(e.key, e.value as Map))
-        .where((c) => c.isActive)
+        .where((c) =>
+            c.isActive &&
+            (c.yearGroup.isEmpty || c.yearGroup == admissionYear))
         .toList();
   }
 

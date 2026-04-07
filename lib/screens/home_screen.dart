@@ -29,7 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _classesFuture = _attendanceService.getActiveClasses(widget.student.courseCode);
+    _classesFuture = _attendanceService.getActiveClasses(
+      widget.student.courseCode,
+      widget.student.admissionYear,
+    );
   }
 
   Future<void> _signOut() async {
@@ -87,7 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFF1A2A3A),
         onRefresh: () async {
           setState(() {
-            _classesFuture = _attendanceService.getActiveClasses(widget.student.courseCode);
+            _classesFuture = _attendanceService.getActiveClasses(
+      widget.student.courseCode,
+      widget.student.admissionYear,
+    );
           });
         },
         child: CustomScrollView(
