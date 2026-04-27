@@ -91,6 +91,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final result = await _attendanceService.markAttendance(
       student: widget.student,
       classData: widget.activeClass,
+      knownLat: _studentLatLng?.latitude,
+      knownLng: _studentLatLng?.longitude,
     );
 
     setState(() {
@@ -123,8 +125,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red.shade800,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        behavior: SnackBarBehavior.fixed,
       ),
     );
   }
@@ -287,16 +288,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              _isInsideGeofence
-                                  ? Icons.check_circle_outline
-                                  : Icons.location_off_outlined,
+                              _studentLatLng == null
+                                  ? Icons.gps_not_fixed
+                                  : _isInsideGeofence
+                                      ? Icons.check_circle_outline
+                                      : Icons.location_off_outlined,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              _isInsideGeofence
-                                  ? 'Mark My Attendance'
-                                  : 'Move Into Classroom',
+                              _studentLatLng == null
+                                  ? 'Acquiring GPS…'
+                                  : _isInsideGeofence
+                                      ? 'Mark My Attendance'
+                                      : 'Move Into Classroom',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

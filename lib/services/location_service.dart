@@ -107,7 +107,31 @@ class LocationService {
   // ── Geofence check ──────────────────────────────────────────
 
   /// Checks whether the student is within the [classData] geofence.
-  Future<GeofenceResult> checkGeofence(ClassModel classData) async {
+  ///
+  /// If [knownLat] and [knownLng] are provided (e.g. from the live map stream),
+  /// they are used directly to avoid an extra GPS round-trip that can return
+  /// a stale or divergent position.
+  Future<GeofenceResult> checkGeofence(
+    ClassModel classData, {
+    double? knownLat,
+    double? knownLng,
+  }) async {
+    // Use the already-obtained live position when available.
+    if (knownLat != null && knownLng != null) {
+      final distance = Geolocator.distanceBetween(
+        knownLat,
+        knownLng,
+        classData.latitude,
+        classData.longitude,
+      );
+      return GeofenceResult.ok(
+        isInside: distance <= classData.geofenceRadius,
+        distance: distance,
+        lat: knownLat,
+        lng: knownLng,
+      );
+    }
+
     final status = await ensurePermissions();
 
     if (status == LocationStatus.serviceDisabled) {

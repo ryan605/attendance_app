@@ -68,7 +68,7 @@ class AttendanceService {
 
     final map = snapshot.value as Map;
     return map.entries
-        .map((e) => ClassModel.fromMap(e.key, e.value as Map))
+        .map((e) => ClassModel.fromMap(e.key as String, e.value as Map))
         .where((c) =>
             c.isActive &&
             (c.yearGroup.isEmpty || c.yearGroup == admissionYear))
@@ -91,6 +91,8 @@ class AttendanceService {
   Future<AttendanceResult> markAttendance({
     required StudentModel student,
     required ClassModel classData,
+    double? knownLat,
+    double? knownLng,
   }) async {
     // ── Guard 1: Already signed? ──────────────────────────────
     final alreadySigned = await hasAlreadySigned(classData.classId, student.uid);
@@ -102,8 +104,7 @@ class AttendanceService {
     }
 
     // ── Guard 2: Class still active? ─────────────────────────
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (!classData.isActive || now < classData.scheduledStart || now > classData.scheduledEnd) {
+    if (!classData.isActive) {
       return AttendanceResult.fail(
         AttendanceError.classNotActive,
         'The attendance window for this class is not open.',
@@ -127,7 +128,11 @@ class AttendanceService {
     }
 
     // ── Guard 4: Inside geofence? ─────────────────────────────
-    final geo = await _locationService.checkGeofence(classData);
+    final geo = await _locationService.checkGeofence(
+      classData,
+      knownLat: knownLat,
+      knownLng: knownLng,
+    );
     if (geo.hasError) {
       return AttendanceResult.fail(
         AttendanceError.locationUnavailable,
