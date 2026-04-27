@@ -66,12 +66,15 @@ class AttendanceService {
 
     if (!snapshot.exists) return [];
 
+    final now = DateTime.now().millisecondsSinceEpoch;
     final map = snapshot.value as Map;
     return map.entries
         .map((e) => ClassModel.fromMap(e.key as String, e.value as Map))
         .where((c) =>
             c.isActive &&
-            (c.yearGroup.isEmpty || c.yearGroup == admissionYear))
+            (c.yearGroup.isEmpty || c.yearGroup == admissionYear) &&
+            now >= c.scheduledStart &&
+            now <= c.scheduledEnd)
         .toList();
   }
 
@@ -103,8 +106,11 @@ class AttendanceService {
       );
     }
 
-    // ── Guard 2: Class still active? ─────────────────────────
-    if (!classData.isActive) {
+    // ── Guard 2: Class still active and within time window? ──
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (!classData.isActive ||
+        now < classData.scheduledStart ||
+        now > classData.scheduledEnd) {
       return AttendanceResult.fail(
         AttendanceError.classNotActive,
         'The attendance window for this class is not open.',

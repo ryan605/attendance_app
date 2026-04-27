@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../services/auth_service.dart';
 import '../services/device_link_service.dart';
 import 'home_screen.dart';
+import 'lecturer_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -83,32 +84,43 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         return;
       }
 
-      // ── Device check ────────────────────────────────────────
-      final deviceResult = await _deviceService.checkAndLinkDevice(result.student!);
-
-      if (deviceResult == DeviceCheckResult.mismatch) {
-        await _authService.signOut();
-        setState(() => _errorMessage = _deviceService.messageFor(deviceResult));
-        return;
-      }
-
-      if (deviceResult == DeviceCheckResult.unavailable) {
-        // Non-blocking warning — allow login but warn
-        if (mounted) {
+      // ── Device check (students only) ────────────────────────
+      final role = result.student!.role;
+      if (role == 'student') {
+        final deviceResult =
+            await _deviceService.checkAndLinkDevice(result.student!);
+        if (deviceResult == DeviceCheckResult.mismatch) {
+          await _authService.signOut();
+          setState(() =>
+              _errorMessage = _deviceService.messageFor(deviceResult));
+          return;
+        }
+        if (deviceResult == DeviceCheckResult.unavailable && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Device ID unavailable — proxy check skipped.')),
+            const SnackBar(
+                content:
+                    Text('Device ID unavailable — proxy check skipped.')),
           );
         }
       }
 
-      // ── Navigate ─────────────────────────────────────────────
+      // ── Navigate based on role ────────────────────────────────
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomeScreen(student: result.student!),
-          ),
-        );
+        if (role == 'lecturer' || role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => LecturerScreen(lecturer: result.student!),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomeScreen(student: result.student!),
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

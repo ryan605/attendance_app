@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:attendance_app/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/home_screen.dart';
+import 'screens/lecturer_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 
@@ -85,7 +86,11 @@ class _AuthGateState extends State<_AuthGate> {
               return const LoginScreen();
             }
 
-            return HomeScreen(student: profileSnapshot.data!);
+            final profile = profileSnapshot.data!;
+            if (profile.role == 'lecturer' || profile.role == 'admin') {
+              return LecturerScreen(lecturer: profile);
+            }
+            return HomeScreen(student: profile);
           },
         );
       },
